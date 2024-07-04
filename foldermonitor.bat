@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 title Folder Monitor
 
 rem REPLACE! With the path of the folder you want to monitor.
-set "folder_to_monitor=C:\Users\Nico\Downloads\test"
+set "folder_to_monitor=C:\Path\Of\The\Folder"
 
 set "temp_dir=%temp%"
 
@@ -31,7 +31,6 @@ for /f "delims=" %%A in ('type "%current_file%"') do (
     certutil -hashfile "%%A" MD5 >> "%current_hashes%"
 )
 
-rem Detectar archivos eliminados y renombrados
 for /f "delims=" %%A in ('type "%previous_file%"') do (
     findstr /x /c:"%%A" "%current_file%" >nul
     if errorlevel 1 (
@@ -52,7 +51,6 @@ for /f "delims=" %%A in ('type "%previous_file%"') do (
                 if "!deleted_hash!" == "!current_hash!" (
                     echo [93mFile "!deleted_file!" renamed to "%%C".[0m
                     set "renamed=1"
-                    rem Eliminar el archivo renombrado de las listas anteriores
                     findstr /x /v /c:"%%A" "%previous_file%" > "%previous_file%.tmp"
                     move /y "%previous_file%.tmp" "%previous_file%" >nul
                     findstr /x /v /c:"%%A" "%previous_hashes%" > "%previous_hashes%.tmp"
@@ -62,7 +60,6 @@ for /f "delims=" %%A in ('type "%previous_file%"') do (
         )
         if !renamed! == 0 (
             echo [1;91mFile "!deleted_file!" deleted.[0m
-            rem Eliminar el archivo eliminado de las listas anteriores
             findstr /x /v /c:"%%A" "%previous_file%" > "%previous_file%.tmp"
             move /y "%previous_file%.tmp" "%previous_file%" >nul
             findstr /x /v /c:"%%A" "%previous_hashes%" > "%previous_hashes%.tmp"
@@ -71,13 +68,11 @@ for /f "delims=" %%A in ('type "%previous_file%"') do (
     )
 )
 
-rem Detectar archivos añadidos
 for /f "delims=" %%A in ('type "%current_file%"') do (
     findstr /x /c:"%%A" "%previous_file%" >nul
     if errorlevel 1 echo [1;92mFile "%%A" added.[0m
 )
 
-rem Detectar archivos modificados
 for /f "delims=" %%A in ('type "%previous_file%"') do (
     findstr /x /c:"%%A" "%current_file%" >nul
     if errorlevel 0 (
@@ -93,7 +88,6 @@ for /f "delims=" %%A in ('type "%previous_file%"') do (
     )
 )
 
-rem Guardar la lista actual y los hashes como los previos para la siguiente iteración
 copy /y "%current_file%" "%previous_file%" >nul
 copy /y "%current_hashes%" "%previous_hashes%" >nul
 
